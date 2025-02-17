@@ -79,7 +79,6 @@ const userController={
             user.role = role || user.role;
             user.phone = phone || user.phone;
             user.address = address || user.address;
-            user.profilePic = profilePic || user.profilePic;
             const updatedUser = await user.save();
             if (!updatedUser) {
                 return res.status(500).json({ message: "Error updating profile" });

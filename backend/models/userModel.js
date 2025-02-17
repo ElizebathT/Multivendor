@@ -17,7 +17,7 @@ const UserSchema = new mongoose.Schema({
   },
   role: { 
     type: String, 
-    enum: ["customer", "admin", "restaurant_staff", "delivery_person"], 
+    enum: ["vendor", "admin", "customer"], 
     required: true 
   },
   phone: { 
@@ -26,6 +26,12 @@ const UserSchema = new mongoose.Schema({
   address:{ 
       type:  String,
   },
+  wishlist: [
+    { 
+      type: mongoose.Schema.Types.ObjectId, 
+      ref: "Product" 
+    }
+  ],
 }, { timestamps: true });
 
 const User = mongoose.model("User", UserSchema);
