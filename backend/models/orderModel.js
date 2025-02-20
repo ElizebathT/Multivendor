@@ -1,44 +1,74 @@
 const mongoose = require("mongoose");
 
-const OrderSchema = new mongoose.Schema({
-    user: { 
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: "User", 
-        required: true 
+const OrderSchema = new mongoose.Schema(
+  {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
     },
-    products: [
-        {
-        product: { 
-            type: mongoose.Schema.Types.ObjectId, 
-            ref: "Product" 
+    delivery: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Delivery",
+      required: true,
+    },
+    otp:{
+      type:Number,      
+    },
+    items: [
+      {
+        product: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "product",
+          required: true,
         },
-        quantity: { 
-            type: Number, 
-            required: true 
+        quantity: {
+          type: Number,
+          required: true,
+          min: 1,
         },
-        price: { 
-            type: Number, 
-            required: true 
-        }
-    }],
-    totalAmount: { 
-        type: Number, 
-        required: true 
+      },
+    ],
+    totalAmount: {
+      type: Number,
+      required: true,
     },
-    status: { 
-        type: String, 
-        enum: ["Pending", "Processing", "Shipped", "Delivered", "Cancelled"], 
-        default: "Pending" 
+    status: {
+      type: String,
+      enum: ["Pending", "Accepted", "Preparing", "Ready for Pickup", "Delivered", "Cancelled"],
+      default: "Pending",
     },
-    paymentStatus: { 
-        type: String, 
-        enum: ["Paid", "Pending", "Refunded"], 
-        default: "Pending" 
+    paymentStatus: {
+      type: String,
+      enum: ["Pending", "Paid", "Failed"],
+      default: "Pending",
     },
-    transactionId: { 
-        type: String 
+    estimatedPreparationTime: {
+      type: Number, // in minutes
+      default: 30, // Default estimated preparation time
     },
-}, { timestamps: true });
+    cancellationReason: {
+      type: String,
+      default: "",
+    },
+    paymentDetails: {
+      type: String,
+      default:"Cash on Delivery",
+    },
+    address:{
+      type:String,
+      require:true
+    },
+    contact:{
+      type:Number,
+      require:true
+    }
+  },
+  { timestamps: true } // Automatically adds createdAt and updatedAt
+);
+
+// Indexing to speed up queries
+OrderSchema.index({ user: 1, createdAt: -1 });
 
 const Order = mongoose.model("Order", OrderSchema);
 module.exports = Order;

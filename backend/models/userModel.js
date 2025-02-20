@@ -17,7 +17,7 @@ const UserSchema = new mongoose.Schema({
   },
   role: { 
     type: String, 
-    enum: ["vendor", "admin", "customer"], 
+    enum: ["vendor", "admin", "customer","delivery"], 
     required: true 
   },
   phone: { 
@@ -32,6 +32,10 @@ const UserSchema = new mongoose.Schema({
       ref: "Product" 
     }
   ],
+  isAvailable: {
+    type:Boolean,
+    default:true
+  }
 }, { timestamps: true });
 
 const User = mongoose.model("User", UserSchema);

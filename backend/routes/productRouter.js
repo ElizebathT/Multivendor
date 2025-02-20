@@ -7,6 +7,7 @@ const productRoutes = express.Router();
 productRoutes.post("/add", userAuthentication,upload.single("images"),productController.createProduct);
 productRoutes.delete("/delete",userAuthentication, productController.deleteProduct);
 productRoutes.get("/view", userAuthentication,productController.getAllProducts);
+productRoutes.get("/search", userAuthentication,productController.getProductById);
 productRoutes.put("/edit", userAuthentication,productController.updateProduct);
 
 module.exports = productRoutes;

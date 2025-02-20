@@ -1,73 +1,76 @@
 const Product = require("../models/productModel");
 const asyncHandler = require("express-async-handler");
+const Vendor = require("../models/vendorModel");
 
-const productController={
-    createProduct : asyncHandler(async (req, res) => {
-    const { name, description, price, stock, category, images} = req.body;
-    const variations = [];
-    const variationKeys = Object.keys(req.body).filter(key => key.startsWith("variations"));
+const productController = {
+    createProduct: asyncHandler(async (req, res) => {
+        const { vendor, name, description, category, images, price, stock, bulkDiscounts, variations } = req.body;
+        const product = new Product({
+            vendor,
+            name,
+            description,
+            category,
+            images,
+            price,
+            stock,
+            bulkDiscounts,
+            variations
+        });
+        const savedProduct = await product.save();
+        const vendorData = await Vendor.findById(vendor);
+        if (vendorData) {
+            vendorData.products.push(savedProduct._id);
+            await vendorData.save();
+        }
+        res.send(savedProduct);
+    }),
 
-    for (let i = 0; i < variationKeys.length; i++) {
-        const variationIndex = variationKeys[i].match(/\d+/)[0]; // Extract index from key name
-        if (!variations[variationIndex]) variations[variationIndex] = {}; // Initialize if not already
+    getAllProducts: asyncHandler(async (req, res) => {
+        const products = await Product.find();
+        res.send(products);
+    }),
 
-        const field = variationKeys[i].split('.')[1]; // Get the specific field (size, color, etc.)
-        variations[variationIndex][field] = req.body[variationKeys[i]]; // Add value to correct index
-    }
-    const product = new Product({
-        vendor: req.user.id, 
-        name,
-        description,
-        price,
-        stock,
-        category,
-        images:req.file.path,
-        variations,
-    });
-    const createdProduct = await product.save();
-    res.send(createdProduct);
-}),
+    getProductById: asyncHandler(async (req, res) => {
+        const { query } = req.body;
+        
+        if (!query) {
+            throw new Error("Search query is required");
+        }
+        
+        const vendors = await Product.find({
+            $or: [
+                { name: { $regex: query, $options: "i" } },
+                { category: { $regex: query, $options: "i" } }
+            ]
+        })
+        
+        res.send(vendors);
+    }),
 
-    getAllProducts : asyncHandler(async (req, res) => {
-    let { category, minPrice, maxPrice, search } = req.body;
-    let filter = {};
-    if (category) filter.category = category;
-    if (minPrice) filter.price = { ...filter.price, $gte: Number(minPrice) };
-    if (maxPrice) filter.price = { ...filter.price, $lte: Number(maxPrice) };
-    if (search) filter.name = { $regex: search, $options: "i" };
-    const products = await Product.find(filter).populate("vendor", "name email");
-    if (products) {
-        res.send("Product not found");
-    }
-    res.send(products);
-}),
+    updateProduct: asyncHandler(async (req, res) => {
+        const {id}=req.body
+        const product = await Product.findById(id);
+        
+        if (product) {
+            Object.assign(product, req.body);
+            const updatedProduct = await product.save();
+            res.send(updatedProduct);
+        } else {
+            res.status(404).json({ message: "Product not found" });
+        }
+    }),
 
-    updateProduct : asyncHandler(async (req, res) => {
-    const {name}=req.body
-    const product = await Product.findOne({name,vendor:req.user.id});
-    if (!product) {
-        throw new Error("Product not found");
-    }
-    const { description, price, stock, category, images, variations } = req.body;
-    product.name = name || product.name;
-    product.description = description || product.description;
-    product.price = price || product.price;
-    product.stock = stock || product.stock;
-    product.category = category || product.category;
-    product.images = images || product.images;
-    product.variations = variations || product.variations;
-    const updatedProduct = await product.save();
-    res.send(updatedProduct);
-}),
+    deleteProduct: asyncHandler(async (req, res) => {
+        const {id}=req.body
+        const product = await Product.findById(id);
+        
+        if (product) {
+            await product.deleteOne();
+            res.send({ message: "Product deleted successfully" });
+        } else {
+            res.status(404).json({ message: "Product not found" });
+        }
+    })
+};
 
-    deleteProduct : asyncHandler(async (req, res) => {
-    const {name}=req.body
-    const product = await Product.findOne({name, vendor:req.user.id});
-    if (!product) {
-        throw new Error("Product not found");
-    }
-    await product.deleteOne();
-    res.send("Product deleted successfully");
-})
-}
 module.exports = productController;
