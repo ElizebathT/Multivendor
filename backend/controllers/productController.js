@@ -10,7 +10,7 @@ const productController = {
             name,
             description,
             category,
-            images,
+            images:req.files,
             price,
             stock,
             bulkDiscounts,
@@ -65,6 +65,14 @@ const productController = {
         const product = await Product.findById(id);
         
         if (product) {
+            await Vendor.findByIdAndUpdate(product.vendor, {
+                $pull: { products: id }
+            },{
+                runValidators:true,
+                new:true
+            });
+    
+            // Delete the product
             await product.deleteOne();
             res.send({ message: "Product deleted successfully" });
         } else {

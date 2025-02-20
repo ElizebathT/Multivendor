@@ -4,6 +4,7 @@ const Cart = require("../models/cartModel");
 const User = require("../models/userModel");
 const Delivery = require("../models/deliveryModel");
 const Notification = require("../models/notificationModel");
+const Product = require("../models/productModel");
 
 const orderController = {
   // Create a new order
@@ -11,7 +12,7 @@ const orderController = {
     const userId = req.user.id;
     const { address, contact } = req.body;
     
-    const cart = await Cart.findOne({ user: userId }).populate("items.productItem");
+    const cart = await Cart.findOne({ user: userId }).populate("items.product");
     if (!cart || cart.items.length === 0) {
       return res.status(400).json({ error: "Cart is empty" });
     }
@@ -30,7 +31,7 @@ const orderController = {
     });
 
     // Create order record
-    const order = new Order({
+    const order = await Order.create({
       user: userId,
       items: cart.items,
       totalAmount: cart.totalAmount,
@@ -39,13 +40,12 @@ const orderController = {
       delivery: delivery.id,
       address,
       contact,
-      status: "Processing"
+      status: "Accepted"
     });
-
-    try {
-      await order.save();
+    
+    try {  
       delivery.order = order.id;
-      await delivery.save();
+      await delivery.save(); 
     } catch (error) {
       return res.status(500).json({ error: "Order creation failed" });
     }
@@ -59,7 +59,7 @@ const orderController = {
     const admin = await User.findOne({ role: "admin" });
 
     for (const item of cart.items) {
-      const product = await product.findById(item.product._id);
+      const product = await Product.findById(item.product._id);
       if (product) {
         product.stock = Math.max(0, product.stock - item.quantity);
         product.availability = product.stock > 0;
@@ -114,9 +114,7 @@ const orderController = {
     if (order.delivery) {
       await Delivery.deleteOne({ _id: order.delivery });
     }
-
     await order.save();
-
     // Mark the driver as available again
     if (order.delivery && order.delivery.driver) {
       const driver = await User.findById(order.delivery.driver);
@@ -125,9 +123,27 @@ const orderController = {
         await driver.save();
       }
     }
-
     res.status(200).json({ message: "Order cancelled successfully", orderId: order._id });
-  })
+  }),
+
+  getOrdersByVendor : asyncHandler(async (req, res) => {
+    const { id:vendorId } = req.body;
+        // Find all products by the vendor
+        const vendorProducts = await Product.find({ vendor: vendorId });
+
+        const productIds = vendorProducts.map(product => product._id);
+      console.log(productIds);
+      
+        // Find orders that include vendor's products
+        const orders = await Order.find({
+          "items.product": { $in: productIds }
+      })   
+        // .populate("user", "name email") // Populate user details
+        // .populate("items.product", "name price") // Populate product details
+        // .sort({ createdAt: -1 });
+
+        res.status(200).json(orders);
+})
 };
 
 module.exports = orderController;

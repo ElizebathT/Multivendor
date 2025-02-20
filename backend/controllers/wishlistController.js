@@ -24,13 +24,9 @@ const wishlistController={
 }),
 
     removeFromWishlist : asyncHandler(async (req, res) => {
-    const { userId, productId } = req.body;
-
+    const { id:productId } = req.body;
+    const userId=req.user.id
     const user = await User.findById(userId);
-
-    if (!user) {
-        return res.status(404).json({ message: "User not found" });
-    }
 
     user.wishlist = user.wishlist.filter(id => id.toString() !== productId);
     await user.save();
@@ -39,8 +35,7 @@ const wishlistController={
 }),
 
     getWishlist : asyncHandler(async (req, res) => {
-    const { userId } = req.params;
-
+        const userId=req.user.id
     const user = await User.findById(userId).populate("wishlist");
 
     if (!user) {

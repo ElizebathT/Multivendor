@@ -22,12 +22,14 @@ const cartController={
         const productId = product._id.toString();
       
         // Check if item is already in the cart
-        const itemIndex = cart.items.findIndex((item) => item.productItem.toString() === productId);
+        const itemIndex = cart.items.findIndex(
+          (item) => item?.product?.toString() === productId
+      );
       
         if (itemIndex > -1) {
           cart.items[itemIndex].quantity += quantity;
         } else {
-          cart.items.push({ productItem: productId, quantity });
+          cart.items.push({ product: productId, quantity });
         }
       
         cart.totalAmount = cart.totalAmount + quantity * product.price
