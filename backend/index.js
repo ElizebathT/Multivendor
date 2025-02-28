@@ -8,13 +8,15 @@ const errorHandler = require("./middlewares/errorHandler")
 const router = require("./routes");
 
 const app = express();
+app.use(cors());
+
 connectDB()
-app.use(express.json());
+
 app.use(cookieParser())
 
 app.use(router)
 
-app.use(cors());
+
 app.use(errorHandler)
 
 

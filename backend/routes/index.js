@@ -6,7 +6,12 @@ const adminRoutes = require("./adminRouter");
 const cartRouter = require("./cartRoutes");
 const orderRouter = require("./orderRoutes");
 const wishlistRoutes = require("./wishlistRoutes");
+const paymentRoutes = require("./paymentRoutes");
 const router=express()
+
+router.use("/payment", paymentRoutes);
+
+router.use(express.json())
 
 router.use("/users", userRoutes);
 router.use("/products", productRoutes);

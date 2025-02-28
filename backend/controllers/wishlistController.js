@@ -14,7 +14,7 @@ const wishlistController={
         }
     // Check if product is already in wishlist
     if (user.wishlist.includes(id)) {
-        res.send("Product already in wishlist");
+        return res.send("Product already in wishlist");
     }
 
     user.wishlist.push(id);
