@@ -1,7 +1,7 @@
 const asyncHandler = require("express-async-handler");
 const Payment = require("../models/paymentModel");
 const Stripe = require("stripe");
-const Order = require("../models/OrderModel");
+const Order = require("../models/orderModel");
 // const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 require("dotenv").config();
 

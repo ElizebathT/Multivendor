@@ -4,77 +4,93 @@ const Vendor = require("../models/vendorModel");
 
 const productController = {
     createProduct: asyncHandler(async (req, res) => {
-        const { vendor, name, description, category, images, price, stock, bulkDiscounts, variations } = req.body;
+        const {
+            name, description, category, price, stock, 
+            minQuantity, discountedPrice, color, size
+        } = req.body;
+
+        const images = req.files ? req.files.map(file => file.path) : [];
+
         const product = new Product({
-            vendor,
+            vendor:req.user.id,
             name,
             description,
             category,
-            images:req.files,
+            images,
             price,
             stock,
-            bulkDiscounts,
-            variations
+            minQuantity,
+            discountedPrice,
+            color,
+            size
         });
+
         const savedProduct = await product.save();
-        const vendorData = await Vendor.findById(vendor);
+
+        // Update Vendor's product list
+        const vendorData = await Vendor.findOne({user:req.user.id});
         if (vendorData) {
             vendorData.products.push(savedProduct._id);
             await vendorData.save();
         }
-        res.send(savedProduct);
+
+        res.status(201).json(savedProduct);
     }),
 
     getAllProducts: asyncHandler(async (req, res) => {
-        const products = await Product.find();
-        res.send(products);
+        const products = await Product.find().populate("vendor", "name");
+        res.json(products);
     }),
 
     getProductById: asyncHandler(async (req, res) => {
-        const { query } = req.body;
-        
-        if (!query) {
-            throw new Error("Search query is required");
+        const product = await Product.findById(req.params.id).populate("vendor review");
+
+        if (product) {
+            res.json(product);
+        } else {
+            res.status(404).json({ message: "Product not found" });
         }
-        
-        const vendors = await Product.find({
+    }),
+
+    searchProducts: asyncHandler(async (req, res) => {
+        const { query } = req.body;        
+        if (!query) {
+            return res.status(400).json({ message: "Search query is required" });
+        }
+        const products = await Product.find({
             $or: [
                 { name: { $regex: query, $options: "i" } },
                 { category: { $regex: query, $options: "i" } }
             ]
-        })
-        
-        res.send(vendors);
+        });
+        res.json(products);
     }),
 
     updateProduct: asyncHandler(async (req, res) => {
-        const {id}=req.body
-        const product = await Product.findById(id);
-        
+        const product = await Product.findById(req.params.id);
         if (product) {
             Object.assign(product, req.body);
+            if (req.files) {
+                product.images = req.files.map(file => file.path);
+            }
+
             const updatedProduct = await product.save();
-            res.send(updatedProduct);
+            res.json(updatedProduct);
         } else {
             res.status(404).json({ message: "Product not found" });
         }
     }),
 
     deleteProduct: asyncHandler(async (req, res) => {
-        const {id}=req.body
-        const product = await Product.findById(id);
-        
+        const product = await Product.findById(req.params.id);
+
         if (product) {
             await Vendor.findByIdAndUpdate(product.vendor, {
-                $pull: { products: id }
-            },{
-                runValidators:true,
-                new:true
+                $pull: { products: product._id }
             });
-    
-            // Delete the product
+
             await product.deleteOne();
-            res.send({ message: "Product deleted successfully" });
+            res.json({ message: "Product deleted successfully" });
         } else {
             res.status(404).json({ message: "Product not found" });
         }

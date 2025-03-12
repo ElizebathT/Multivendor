@@ -6,9 +6,9 @@ const ReviewSchema = new mongoose.Schema({
     ref: "User", 
     required: true 
   },
-  restaurant: { 
+  product: { 
     type: mongoose.Schema.Types.ObjectId, 
-    ref: "Restaurant", 
+    ref: "Product", 
     required: true 
   },
   comment: { 
@@ -21,16 +21,7 @@ const ReviewSchema = new mongoose.Schema({
     min: 0,
     max: 10
   },
-  categories: [{ type: String }], // Categories assigned based on text analysis
-  createdAt: { 
-    type: Date, 
-    default: Date.now 
-  }
 });
-
-// Enable full-text search indexing for efficient filtering
-ReviewSchema.index({ comment: "text" });
-
 
 const Review = mongoose.model("Review", ReviewSchema);
 module.exports = Review;

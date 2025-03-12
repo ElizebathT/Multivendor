@@ -18,24 +18,20 @@ const ProductSchema = new mongoose.Schema({
         type: Number,},
     stock: { 
         type: Number,},
-    bulkDiscounts: [
-        { 
-            minQuantity: Number, 
-            discountedPrice: Number 
-        }
-    ],
-    variations: [
-        {
-            attribute: String, // e.g., color, size
-            value: String
-        }
-    ],
-    ratings: { 
-        type: Number, 
-        default: 0 },
-    totalReviews: { 
-        type: Number, 
-        default: 0 },
+    minQuantity: { 
+        type: Number,},
+    discountedPrice: { 
+        type: Number,},
+    color: [{
+            type: String,
+        }],
+    size:[{
+        type: String,
+    }],
+    review:  { 
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: "Review"
+    },
     availability:
         {
             type:Boolean,

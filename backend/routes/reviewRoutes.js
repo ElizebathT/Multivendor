@@ -8,6 +8,4 @@ reviewRouter.post("/add", userAuthentication,reviewController.addReview);
 
 reviewRouter.get("/get", userAuthentication,reviewController.getReviews);
 
-reviewRouter.get("/filter", userAuthentication,reviewController.filterReviewsByCategory);
-
 module.exports = reviewRouter;

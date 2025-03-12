@@ -1,43 +1,26 @@
 const expree=require('express')
 const Review = require("../models/reviewModel");
-const Restaurant = require("../models/restaurantModel");
-const asyncHandler=require("express-async-handler")
+const asyncHandler=require("express-async-handler");
+const Product = require('../models/productModel');
 
-const serviceKeywords = ["staff", "waiter", "service", "friendly", "rude", "slow"];
-const foodKeywords = ["delicious", "tasty", "flavor", "spicy", "cold", "fresh"];
-const locationKeywords = ["parking", "view", "ambience", "environment", "noise", "crowded"];
-
-const categorizeReview = (comment) => {
-  let categories = [];
-  const lowerComment = comment.toLowerCase();
-
-  if (serviceKeywords.some(word => lowerComment.includes(word))) categories.push("service");
-  if (foodKeywords.some(word => lowerComment.includes(word))) categories.push("food");
-  if (locationKeywords.some(word => lowerComment.includes(word))) categories.push("location");
-
-  return categories;
-};
 
 const reviewController={
 addReview : asyncHandler(async (req, res) => {
-    const { name,comment,rating } = req.body;
+    const { id,comment,rating } = req.body;
     const userId=req.user.id
     
     if (!comment) {
       return res.status(400).json({ error: "Review comment is required" });
     }
     
-    const restaurantExist = await Restaurant.findOne({ name});
-    if(!restaurantExist){
-        res.send('Restaurant not found')
+    const productExist = await Product.findById(id);
+    if(!productExist){
+        res.send('Product not found')
     }
-    const restaurantId=restaurantExist._id
-    const categories = categorizeReview(comment);
-
-
+    const productId=productExist._id
     const newReview = new Review({
       user: userId,
-      restaurant: restaurantId,
+      product: productId,
       comment,
       rating,
       categories
@@ -45,7 +28,7 @@ addReview : asyncHandler(async (req, res) => {
 
     await newReview.save();
 
-    const complete=await Restaurant.findByIdAndUpdate(restaurantId, { $push: { reviews: newReview._id } });
+    const complete=await Product.findByIdAndUpdate(productId, { $push: { reviews: newReview._id } });
 
     if(!complete){
         throw new Error( "Error adding review" );
@@ -54,34 +37,19 @@ addReview : asyncHandler(async (req, res) => {
     }),
 
 getReviews : asyncHandler(async (req, res) => {
-    const { name } = req.body;
-    const restaurantExist = await Restaurant.findOne({ name});
-    if(!restaurantExist){
-        res.send('Restaurant not found')
+    const { id } = req.body;
+    const productExist = await Product.findById(id);
+    if(!productExist){
+        res.send('Product not found')
     }
-    const restaurantId=restaurantExist._id
-        const reviews = await Review.find({ restaurant: restaurantId }).populate("user", "name");
+    const productId=productExist._id
+        const reviews = await Review.find({ product: productId }).populate("user", "name");
     if(!reviews){
         res.send('No reviews found')
     }
-        res.send(reviews);
-        
+        res.send(reviews);        
     }),
 
-filterReviewsByCategory :asyncHandler(async (req, res) => {
-        const { category } = req.body;
-    
-        if (!["service", "food"].includes(category)) {
-            res.send("Invalid category");
-        }
-    
-        const reviews = await Review.find({ categories: category }).populate('restaurant');
-    
-        const restaurantIds = reviews.map(review => review.restaurant._id);
-    
-        const restaurants = await Restaurant.find({ _id: { $in: restaurantIds } }).populate('reviews');
-        res.send(restaurants)
-    })
 }
 
 module.exports = reviewController

@@ -67,8 +67,5 @@ const OrderSchema = new mongoose.Schema(
   { timestamps: true } // Automatically adds createdAt and updatedAt
 );
 
-// Indexing to speed up queries
-OrderSchema.index({ user: 1, createdAt: -1 });
-
 const Order = mongoose.model("Order", OrderSchema);
 module.exports = Order;
