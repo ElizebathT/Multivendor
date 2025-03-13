@@ -97,6 +97,42 @@ const userController={
             message: "User details retrieved successfully",
             user
         });
+    }),
+
+    changePassword: asyncHandler(async (req, res) => {
+        const userId = req.user.id;
+        const { oldPassword, newPassword } = req.body;
+    
+        // Validate input
+        if (!oldPassword || !newPassword) {
+            res.status(400);
+            throw new Error("Both old and new passwords are required");
+        }
+    
+        const user = await User.findById(userId);
+        if (!user) {
+            res.status(404);
+            throw new Error("User not found");
+        }
+    
+        // Check if old password matches
+        const isMatch = await bcrypt.compare(oldPassword, user.password);
+        if (!isMatch) {
+            res.status(401);
+            throw new Error("Incorrect old password");
+        }
+    
+        // Hash the new password
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(newPassword, salt);
+    
+        // Save the updated user
+        await user.save();
+    
+        res.send({
+            message: "Password changed successfully",
+        });
     })
+    
 }
 module.exports=userController
