@@ -1,6 +1,7 @@
 const Cart = require("../models/cartModel");
 const asyncHandler = require("express-async-handler");
 const Product = require("../models/productModel");
+const Notification = require("../models/notificationModel");
 
 const cartController={
     addToCart : asyncHandler(async (req, res) => {
@@ -40,6 +41,11 @@ const cartController={
         {
           res.send('Error in adding to cart')
         }
+        const notification = new Notification({
+          user: userId,
+          message: `You have added ${quantity} ${product.name}(s) to your cart.`
+      });
+      await notification.save();
         res.send(cart);
       }),
 

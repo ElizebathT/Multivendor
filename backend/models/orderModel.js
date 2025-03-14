@@ -7,14 +7,6 @@ const OrderSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-    delivery: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Delivery",
-      required: true,
-    },
-    otp:{
-      type:Number,      
-    },
     items: [
       {
         product: {
@@ -42,10 +34,6 @@ const OrderSchema = new mongoose.Schema(
       type: String,
       enum: ["Pending", "Paid", "Failed"],
       default: "Pending",
-    },
-    estimatedPreparationTime: {
-      type: Number, // in minutes
-      default: 30, // Default estimated preparation time
     },
     cancellationReason: {
       type: String,

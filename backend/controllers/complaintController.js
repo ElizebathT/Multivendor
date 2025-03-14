@@ -1,5 +1,6 @@
 const asyncHandler = require("express-async-handler");
 const Complaint = require("../models/complaintModel");
+const Notification = require("../models/notificationModel");
 
 const complaintController={
     fileComplaint  : asyncHandler(async (req, res) => {
@@ -13,6 +14,11 @@ const complaintController={
     if(!complaint){
         res.send("Error in filing complaint")
       }
+      const notification = new Notification({
+        user: req.user.id,
+        message: `Complaint registered successfully.`
+    });
+    await notification.save();
     res.send('Complaint filed successfully');
 }),
 

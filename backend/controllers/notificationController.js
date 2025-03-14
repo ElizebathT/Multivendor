@@ -2,20 +2,28 @@ const asyncHandler = require("express-async-handler");
 const Notification = require("../models/notificationModel");
 
 const notificationController = {
-    readNotification : asyncHandler(async (req,res) => {
-        const {id}=req.body
-        const notification = await Notification.findById(id);
-        if (!notification) {
-          throw new Error("Notification not found");
-        }
-        notification.isRead = true;
-        await notification.deleteOne();
-        res.send("Message marked read")
-    }),
+  readNotification: asyncHandler(async (req, res) => {
+    const result = await Notification.updateMany(
+        { user: req.user.id, isRead: false }, // Find unread notifications
+        { $set: { isRead: true } } // Mark them as read
+    );
 
-    getNotifications : asyncHandler(async (req,res) => {
-        const notification= await Notification.find({ recipient: req.user.id }).sort({ createdAt: -1 });
-        res.send(notification)
-      })
+    if (result.modifiedCount === 0) {
+        return res.status(404).json({ message: "No unread notifications found" });
+    }
+
+    res.json({ message: "All notifications marked as read" });
+  }),
+
+
+  getNotifications: asyncHandler(async (req, res) => {
+    const notifications = await Notification.find({ 
+        user: req.user.id, 
+        isRead: false // Only fetch unread notifications
+    }).sort({ createdAt: -1 });
+
+    res.json(notifications);
+}),
+
 }
 module.exports=notificationController
