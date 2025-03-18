@@ -15,6 +15,9 @@ const UserSchema = new mongoose.Schema({
     type: String, 
     minLength:[5,"Minimum 5 characters required"]
   },
+  gstNumber:{ 
+    type: String,
+},
   role: { 
     type: String, 
     enum: ["vendor", "admin", "customer"], 

@@ -5,7 +5,7 @@ const Vendor = require("../models/vendorModel");
 const productController = {
     createProduct: asyncHandler(async (req, res) => {
         const {
-            name, description, category, price, stock, 
+            name, description, category, price, stock, discountedType, gender,
             minQuantity, discountedPrice, color, size
         } = req.body;
 
@@ -15,6 +15,8 @@ const productController = {
             vendor:req.user.id,
             name,
             description,
+            gender,
+            discountedType,
             category,
             images,
             price,
@@ -53,18 +55,29 @@ const productController = {
     }),
 
     searchProducts: asyncHandler(async (req, res) => {
-        const { query } = req.body;        
-        if (!query) {
-            return res.status(400).json({ message: "Search query is required" });
+        const { name, category, gender } = req.body;
+    
+        if (!name && !category && !gender) {
+            return res.status(400).json({ message: "At least one search parameter is required" });
         }
-        const products = await Product.find({
-            $or: [
-                { name: { $regex: query, $options: "i" } },
-                { category: { $regex: query, $options: "i" } }
-            ]
-        });
+    
+        const query = {
+            $or: []
+        };
+    
+        if (name) query.$or.push({ name: { $regex: name, $options: "i" } });
+        if (category) query.$or.push({ category: { $regex: category, $options: "i" } });
+        if (gender) query.$or.push({ gender: { $regex: gender, $options: "i" } });
+    
+        // Ensure there is at least one condition
+        if (query.$or.length === 0) {
+            return res.status(400).json({ message: "Invalid search parameters" });
+        }
+    
+        const products = await Product.find(query);
         res.json(products);
     }),
+    
 
     updateProduct: asyncHandler(async (req, res) => {
         const product = await Product.findById(req.params.id);

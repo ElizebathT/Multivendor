@@ -6,7 +6,7 @@ const User = require("../models/userModel");
 
 const userController={
     register : asyncHandler(async(req,res)=>{        
-      const {username,email,password,role}=req.body
+      const {username,email,gstNumber,password,role}=req.body
       const userExits=await User.findOne({email})
       if(userExits){
           throw new Error("User already exists")
@@ -15,6 +15,7 @@ const userController={
       const userCreated=await User.create({
           username,
           email,
+          gstNumber,
           password:hashed_password,
           role
       })

@@ -22,6 +22,10 @@ const ProductSchema = new mongoose.Schema({
         type: Number,},
     discountedPrice: { 
         type: Number,},
+    discountedType: { 
+        type: String,},
+    gender: { 
+        type: String,},
     color: [{
             type: String,
         }],
