@@ -44,6 +44,12 @@ const productController = {
         res.json(products);
     }),
 
+    getVendorProducts: asyncHandler(async (req, res) => {
+        const vendor=await Vendor.findOne({user:req.user.id})
+        const products = await Product.find({vendor}).populate("vendor", "name");
+        res.json(products);
+    }),
+
     getProductById: asyncHandler(async (req, res) => {
         const product = await Product.findById(req.params.id).populate("vendor review");
 

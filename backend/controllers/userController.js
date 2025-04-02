@@ -3,6 +3,7 @@ const bcrypt = require("bcryptjs");
 const asyncHandler=require("express-async-handler")
 const express=require('express');
 const User = require("../models/userModel");
+const Vendor = require("../models/vendorModel");
 
 const userController={
     register : asyncHandler(async(req,res)=>{        
@@ -15,19 +16,24 @@ const userController={
       const userCreated=await User.create({
           username,
           email,
-          gstNumber,
           password:hashed_password,
           role
       })
       if(!userCreated){
           throw new Error("User creation failed")
       }
+      const vendor = await Vendor.create({
+        user: userCreated._id,
+        gstNumber,
+    });
       const payload={
-          email:userCreated.email,
-          id:userCreated.id
-      }
-      const token=jwt.sign(payload,process.env.JWT_SECRET_KEY)
-      res.json({token,role})
+        name:userCreated.username,  
+        email:userCreated.email,
+        role:userCreated.role,
+        id:userCreated.id
+    }
+    const token=jwt.sign(payload,process.env.JWT_SECRET_KEY)
+    res.json(token)
         }),  
   
     login :asyncHandler(async(req,res)=>{

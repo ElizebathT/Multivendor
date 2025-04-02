@@ -6,29 +6,48 @@ const asyncHandler = require("express-async-handler");
 
 const vendorController = {
     upsertVendor: asyncHandler(async (req, res) => {
-        const { businessName, businessLicense, address, phone, accountStatus } = req.body;
-        let vendor = await Vendor.findOne({ businessName });
-        const user = await User.findById(req.user.id);
+        const { businessName, businessLicense, address, phone, accountStatus, username, email, gstNumber } = req.body;
+    
+    let vendor = await Vendor.findOne({ user:req.user.id });
+    let user = await User.findById(req.user.id);
 
-        if (vendor) {
-            // Update existing vendor
-            vendor.businessLicense = businessLicense || vendor.businessLicense;
-            vendor.address = address || vendor.address;
-            vendor.phone = phone || vendor.phone;
-            vendor.accountStatus = accountStatus || vendor.accountStatus;
-        } else {
-            // Create new vendor
-            vendor = new Vendor({
-                user: user.id,
-                businessName,
-                businessLicense,
-                address: address || user.address,
-                phone: phone || user.phone,
-            });
-        }
+    if (!user) {
+        return res.status(404).json({ message: "User not found" });
+    }
 
-        const savedVendor = await vendor.save();
-        res.send(savedVendor);
+    // Update user details
+    user.username = username || user.username;
+    user.email = email || user.email;
+    user.phone = phone || user.phone;
+    user.address = address || user.address;
+
+    if (password) {
+        user.password = password; // Make sure to hash it before saving!
+    }
+
+    await user.save();
+
+    if (vendor) {
+        // Update existing vendor
+        vendor.businessLicense = businessLicense || vendor.businessLicense;
+        vendor.address = address || vendor.address;
+        vendor.phone = phone || vendor.phone;
+        vendor.gstNumber = gstNumber || vendor.gstNumber;
+        vendor.accountStatus = accountStatus || vendor.accountStatus;
+    } else {
+        // Create new vendor
+        vendor = new Vendor({
+            user: user.id,
+            businessName,
+            businessLicense,
+            gstNumber,
+            address: address || user.address,
+            phone: phone || user.phone,
+        });
+    }
+
+    const savedVendor = await vendor.save();
+    res.json({ vendor: savedVendor, user });
     }),
 
     

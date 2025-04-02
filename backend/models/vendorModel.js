@@ -12,6 +12,9 @@ const VendorSchema = new mongoose.Schema({
     businessLicense: { 
         type: String,
     },
+    gstNumber:{ 
+        type: String,
+    },
     address: { 
         type: String,
     },
